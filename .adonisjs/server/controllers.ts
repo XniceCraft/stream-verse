@@ -10,5 +10,6 @@ export const controllers = {
   },
   Football: () => import('#controllers/football_controller'),
   Page: () => import('#controllers/page_controller'),
+  Tv: () => import('#controllers/tv_controller'),
   User: () => import('#controllers/user_controller'),
 }

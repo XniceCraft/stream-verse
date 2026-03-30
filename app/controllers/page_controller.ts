@@ -5,6 +5,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 export default class PageController {
   async home({ inertia }: HttpContext) {
     const footballService = await app.container.make('football')
+    const tvService = await app.container.make('tv')
 
     const liveFootball = await footballService.getMatches({
       max: 10,
@@ -16,10 +17,14 @@ export default class PageController {
       status: 'notstarted',
       sort: 'desc',
     })
+    const tvChannels = await tvService.getChannels({
+      max: 8,
+    })
 
     return inertia.render('home', {
       liveFootball,
       upcomingFootball,
+      tvChannels,
     })
   }
 }

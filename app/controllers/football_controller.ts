@@ -1,8 +1,8 @@
 import { errors as lucidErrors } from '@adonisjs/lucid'
+import { footballFiltersValidator } from '#validators/football'
 import app from '@adonisjs/core/services/app'
 
 import type { HttpContext } from '@adonisjs/core/http'
-import { footballFiltersValidator } from '#validators/football'
 
 export default class FootballController {
   async index({ inertia, request }: HttpContext) {

@@ -1,74 +1,59 @@
-import { useState, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import { Search, Filter, ArrowUpDown, Tv, PlayCircle } from 'lucide-react'
+import { router } from '@inertiajs/react'
 import { Navbar } from '@/components/layout/navbar'
 import { Seo } from '@/components/other/seo'
 import { TvCard } from '@/components/card/tv-card'
+import { urlFor } from '@/client'
 
+import type { TvChannel } from '#types/contract/tv'
 import type { InertiaProps } from '@/types'
 
-// Temporary generic type since TV contract doesn't exist yet
-export interface TvChannel {
-  id: string
-  name: string
-  category: string
-  logo?: string
-  isLive: boolean
-}
-
-const DUMMY_CHANNELS: TvChannel[] = [
-  { id: '1', name: 'SKY SPORTS', category: 'Sports', isLive: true },
-  { id: '2', name: 'ESPN', category: 'Sports', isLive: true },
-  { id: '3', name: 'BEIN SPORT 1', category: 'Sports', isLive: true },
-  { id: '4', name: 'TNT SPORTS', category: 'Sports', isLive: true },
-  { id: '5', name: 'NBC', category: 'General', isLive: false },
-  { id: '6', name: 'CBS', category: 'General', isLive: true },
-  { id: '7', name: 'PRIME VIDEO', category: 'Sports', isLive: false },
-  { id: '8', name: 'DAZN', category: 'Sports', isLive: true },
-]
-
 export default function TvIndex({
-  channels = DUMMY_CHANNELS,
+  channels = [],
+  categories = [],
+  filters = {},
 }: InertiaProps<{
-  channels?: TvChannel[]
+  channels: TvChannel[]
+  categories: string[]
+  filters: { search?: string; category?: string; sort?: string; page?: number }
 }>) {
-  const [search, setSearch] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState('all') // 'all', 'Sports', 'General' etc.
-  const [sort, setSort] = useState('name-asc') // 'name-asc', 'name-desc'
+  const [search, setSearch] = useState(filters.search || '')
+  const [categoryFilter, setCategoryFilter] = useState(filters.category || 'all')
+  const [sort, setSort] = useState(filters.sort || 'name-asc')
 
-  const categories = useMemo(() => {
-    const cats = new Set(channels.map((c) => c.category))
-    return Array.from(cats)
-  }, [channels])
+  const updateFilters = useCallback(
+    (key: string, value: string) => {
+      const newFilters = {
+        search,
+        category: categoryFilter !== 'all' ? categoryFilter : undefined,
+        sort,
+        [key]: value,
+      }
 
-  const filteredChannels = useMemo(() => {
-    return channels
-      .filter((channel) => {
-        // Search filter
-        if (search && !channel.name.toLowerCase().includes(search.toLowerCase())) {
-          return false
-        }
-        // Category filter
-        if (categoryFilter !== 'all' && channel.category !== categoryFilter) {
-          return false
-        }
-        return true
-      })
-      .sort((a, b) => {
-        if (sort === 'name-asc') {
-          return a.name.localeCompare(b.name)
-        } else if (sort === 'name-desc') {
-          return b.name.localeCompare(a.name)
-        }
-        return 0
-      })
-  }, [channels, search, categoryFilter, sort])
+      if (key === 'search') setSearch(value)
+      if (key === 'category') setCategoryFilter(value)
+      if (key === 'sort') setSort(value)
+
+      router.get(
+        '/tv',
+        {
+          search: newFilters.search || undefined,
+          category: newFilters.category !== 'all' ? newFilters.category : undefined,
+          sort: newFilters.sort,
+        },
+        { preserveState: true, replace: true }
+      )
+    },
+    [search, categoryFilter, sort]
+  )
 
   return (
     <>
-      <Seo title="TV Channels" />
+      <Seo title="TV Channels" path={urlFor('tv.index')} />
       <Navbar />
       <main className="min-h-screen bg-surface">
-        <div className="mx-auto max-w-7xl px-4 py-8 space-y-8">
+        <div className="mx-auto max-w-7xl px-4 py-8 space-y-8 pt-24 lg:pt-28">
           {/* Header */}
           <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="space-y-2">
@@ -97,7 +82,7 @@ export default function TvIndex({
                 placeholder="Search TV channels..."
                 className="block w-full rounded-xl border border-border/50 bg-background/50 py-3 pl-11 pr-4 text-sm outline-none transition-all placeholder:text-muted-foreground focus:bg-background focus:border-primary focus:ring-1 focus:ring-primary shadow-sm"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => updateFilters('search', e.target.value)}
               />
             </div>
 
@@ -109,7 +94,7 @@ export default function TvIndex({
                 <select
                   className="w-full sm:w-auto min-w-[160px] appearance-none rounded-xl border border-border/50 bg-background/50 py-3 pl-10 pr-10 text-sm outline-none transition-all focus:bg-background focus:border-primary focus:ring-1 focus:ring-primary shadow-sm"
                   value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  onChange={(e) => updateFilters('category', e.target.value)}
                 >
                   <option value="all">All Categories</option>
                   {categories.map((cat) => (
@@ -130,7 +115,7 @@ export default function TvIndex({
                       strokeLinejoin="round"
                       strokeWidth="2"
                       d="M19 9l-7 7-7-7"
-                    ></path>
+                    />
                   </svg>
                 </div>
               </div>
@@ -142,7 +127,7 @@ export default function TvIndex({
                 <select
                   className="w-full sm:w-auto min-w-[170px] appearance-none rounded-xl border border-border/50 bg-background/50 py-3 pl-10 pr-10 text-sm outline-none transition-all focus:bg-background focus:border-primary focus:ring-1 focus:ring-primary shadow-sm"
                   value={sort}
-                  onChange={(e) => setSort(e.target.value)}
+                  onChange={(e) => updateFilters('sort', e.target.value)}
                 >
                   <option value="name-asc">Name (A-Z)</option>
                   <option value="name-desc">Name (Z-A)</option>
@@ -159,7 +144,7 @@ export default function TvIndex({
                       strokeLinejoin="round"
                       strokeWidth="2"
                       d="M19 9l-7 7-7-7"
-                    ></path>
+                    />
                   </svg>
                 </div>
               </div>
@@ -168,7 +153,7 @@ export default function TvIndex({
 
           {/* Results Grid */}
           <section>
-            {filteredChannels.length === 0 ? (
+            {channels.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border/60 bg-surface-container-low/30 py-24 text-center backdrop-blur-sm">
                 <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-surface-container shadow-inner">
                   <PlayCircle className="size-10 text-muted-foreground/50" />
@@ -181,9 +166,9 @@ export default function TvIndex({
                 </p>
                 <button
                   onClick={() => {
-                    setSearch('')
-                    setCategoryFilter('all')
-                    setSort('name-asc')
+                    updateFilters('search', '')
+                    updateFilters('category', 'all')
+                    updateFilters('sort', 'name-asc')
                   }}
                   className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary/10 px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 >
@@ -192,14 +177,14 @@ export default function TvIndex({
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {filteredChannels.map((channel) => (
+                {channels.map((channel) => (
                   <TvCard
                     key={channel.id}
                     id={channel.id}
                     name={channel.name}
-                    category={channel.category}
-                    logo={channel.logo}
-                    isLive={channel.isLive}
+                    category={channel.categories?.[0] || 'General'}
+                    logo={channel.logo ?? undefined}
+                    isLive={true}
                   />
                 ))}
               </div>

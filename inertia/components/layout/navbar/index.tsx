@@ -33,7 +33,7 @@ const navigationData: NavigationSection[] = [
   },
   {
     title: 'TV',
-    href: '#',
+    href: '/tv',
   },
 ]
 

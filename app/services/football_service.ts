@@ -281,30 +281,24 @@ export class FootballService {
   }
 
   protected async fetchMatches(): Promise<MatchData[]> {
-    return await cache.getOrSet({
-      key: 'sportsrc:football',
-      ttl: '5m',
-      factory: async () => {
-        try {
-          const response = await axios.get<MatchesResponse>(
-            `${FootballService.API_ENDPOINT}/?type=matches`,
-            {
-              headers: {
-                'X-API-KEY': env.get('SPORTSRC_API_KEY'),
-              },
-            }
-          )
-
-          if (!response.data.success) {
-            return []
-          }
-
-          return response.data.data
-        } catch (error) {
-          console.error('Error fetching football matches:', error)
-          return []
+    try {
+      const response = await axios.get<MatchesResponse>(
+        `${FootballService.API_ENDPOINT}/?type=matches`,
+        {
+          headers: {
+            'X-API-KEY': env.get('SPORTSRC_API_KEY'),
+          },
         }
-      },
-    })
+      )
+
+      if (!response.data.success) {
+        return []
+      }
+
+      return response.data.data
+    } catch (error) {
+      console.error('Error fetching football matches:', error)
+      return []
+    }
   }
 }

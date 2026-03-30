@@ -1,152 +1,199 @@
-const DUMMY_CHANNELS = [
-  { id: '1', name: 'SKY SPORTS' },
-  { id: '2', name: 'ESPN' },
-  { id: '3', name: 'BEIN' },
-  { id: '4', name: 'TNT' },
-  { id: '5', name: 'NBC' },
-  { id: '6', name: 'CBS' },
-  { id: '7', name: 'PRIME' },
-  { id: '8', name: 'DAZN' },
-]
+import { Link } from '@adonisjs/inertia/react'
+import { Seo } from '@/components/other/seo'
+import { urlFor } from '@/client'
+import {
+  MediaPlayer,
+  MediaPlayerVideo,
+  MediaPlayerLoading,
+  MediaPlayerError,
+  MediaPlayerVolumeIndicator,
+  MediaPlayerControls,
+  MediaPlayerControlsOverlay,
+  MediaPlayerPlay,
+  MediaPlayerSeekBackward,
+  MediaPlayerSeekForward,
+  MediaPlayerVolume,
+  MediaPlayerSeek,
+  MediaPlayerTime,
+  MediaPlayerFullscreen,
+} from '@/components/ui/media-player'
+import MuxVideo from '@mux/mux-video-react'
 
-export default function TVShow() {
+import type { TvChannelDetail } from '#types/contract/tv'
+import type { InertiaProps } from '@/types'
+
+export default function TVShow({ channel }: InertiaProps<{ channel: TvChannelDetail }>) {
   return (
-    <div className="min-h-screen bg-background text-foreground flex antialiased">
-      {/* Sidebar Navigation */}
-      <aside className="w-64 bg-surface-container-low hidden md:flex flex-col border-r border-border/50">
-        <div className="h-20 flex items-center px-8">
-          <h1 className="font-heading font-bold text-2xl text-primary tracking-tighter">
-            StreamVerse
-          </h1>
-        </div>
-        <nav className="flex-1 px-4 py-6 space-y-2">
-          <div className="text-muted-foreground hover:text-foreground hover:bg-surface-container px-4 py-2 rounded-md transition-colors cursor-pointer">
-            Home
-          </div>
-          <div className="text-muted-foreground hover:text-foreground hover:bg-surface-container px-4 py-2 rounded-md transition-colors cursor-pointer">
-            Live Matches
-          </div>
-          <div className="text-foreground bg-surface-container px-4 py-2 rounded-md transition-colors cursor-pointer font-medium">
-            TV Channels
-          </div>
-        </nav>
-      </aside>
+    <>
+      <Seo title={channel.name} path={urlFor('tv.show', { id: channel.id })} />
 
-      {/* Main Content Area */}
-      <main className="flex-1 w-full bg-surface overflow-y-auto">
-        <header className="h-20 flex items-center justify-between px-8 bg-surface-container-low/50 backdrop-blur-md sticky top-0 z-50">
-          <div className="flex-1"></div>
-          <div className="flex items-center gap-4 cursor-pointer">
-            <div className="h-10 w-10 rounded-full bg-primary/20 border border-border/50 flex items-center justify-center">
-              <span className="text-xs font-bold text-primary">US</span>
-            </div>
+      <div className="min-h-screen bg-background text-foreground flex antialiased">
+        <aside className="w-64 bg-surface-container-low hidden md:flex flex-col border-r border-border/50">
+          <div className="h-20 flex items-center px-8 text-xl font-bold text-primary tracking-tighter">
+            <Link href="/">StreamVerse</Link>
           </div>
-        </header>
-
-        <div className="p-8">
-          {/* Top Navigation specific to channels */}
-          <div className="mb-8">
-            <h2 className="font-heading font-bold text-2xl mb-4">Browse Channels</h2>
-            <div
-              className="w-full overflow-x-auto pb-6 pt-2"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          <nav className="flex-1 px-4 py-6 space-y-2">
+            <Link
+              href="/"
+              className="block text-muted-foreground hover:text-foreground hover:bg-surface-container px-4 py-2 rounded-md transition-colors font-medium"
             >
-              <div className="flex gap-5 min-w-max px-1">
-                {DUMMY_CHANNELS.map((channel) => (
-                  <div
-                    key={channel.id}
-                    className="w-[72px] h-[72px] rounded-full bg-surface-container border border-border/30 flex flex-col items-center justify-center cursor-pointer hover:bg-surface-container-high hover:border-primary/30 transition-all duration-300 shadow-sm hover:-translate-y-1"
-                  >
-                    <span className="text-[10px] font-bold text-muted-foreground">
-                      {channel.name.substring(0, 4)}
-                    </span>
-                  </div>
-                ))}
+              Home
+            </Link>
+            <Link
+              href="/football"
+              className="block text-muted-foreground hover:text-foreground hover:bg-surface-container px-4 py-2 rounded-md transition-colors font-medium"
+            >
+              Live Matches
+            </Link>
+            <Link
+              href="/tv"
+              className="block text-foreground bg-surface-container px-4 py-2 rounded-md transition-colors font-medium"
+            >
+              TV Channels
+            </Link>
+          </nav>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="flex-1 w-full bg-surface overflow-y-auto">
+          <header className="h-20 flex items-center justify-between px-8 bg-surface-container-low/50 backdrop-blur-md sticky top-0 z-50">
+            <div className="flex-1"></div>
+            <div className="flex items-center gap-4">
+              <div className="h-10 w-10 rounded-full bg-primary/20 border border-border/50 flex items-center justify-center">
+                <span className="text-xs font-bold text-primary uppercase">
+                  {channel.country || 'TV'}
+                </span>
               </div>
             </div>
-          </div>
+          </header>
 
-          <div className="flex flex-col xl:flex-row gap-8">
-            {/* Main Video Area */}
-            <div className="flex-1">
-              <div className="aspect-video w-full bg-[#0a0a0a] rounded-[2rem] overflow-hidden relative shadow-lg flex items-center justify-center border border-border/10">
-                <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center cursor-pointer hover:bg-primary/30 transition-all hover:scale-105 backdrop-blur-md">
-                  <div className="w-0 h-0 border-t-[10px] border-t-transparent border-l-[18px] border-l-primary-foreground border-b-[10px] border-b-transparent ml-2 opacity-90"></div>
+          <div className="p-8">
+            <div className="flex flex-col xl:flex-row gap-8">
+              {/* Main Video Area */}
+              <div className="flex-1">
+                <div className="aspect-video w-full bg-[#0a0a0a] rounded-4xl overflow-hidden relative shadow-lg flex items-center justify-center border border-border/10">
+                  {channel.streams.length > 0 ? (
+                    <MediaPlayer autoHide className="w-full h-full">
+                      <MediaPlayerVideo asChild>
+                        <MuxVideo src={channel.streams[0].url} autoPlay crossOrigin="" />
+                      </MediaPlayerVideo>
+                      <MediaPlayerLoading />
+                      <MediaPlayerError />
+                      <MediaPlayerVolumeIndicator />
+
+                      <div className="absolute top-8 left-8 flex items-center gap-4 pointer-events-none z-10 transition-opacity duration-300">
+                        {channel.logo && (
+                          <img
+                            src={channel.logo}
+                            alt={channel.name}
+                            className="h-12 w-auto object-contain mix-blend-overlay opacity-80 drop-shadow-md"
+                          />
+                        )}
+                        <div className="font-heading font-bold text-2xl tracking-tighter text-white/80 mix-blend-overlay drop-shadow-md">
+                          {channel.name}
+                        </div>
+                      </div>
+
+                      <MediaPlayerControls>
+                        <MediaPlayerControlsOverlay />
+                        <MediaPlayerPlay />
+                        <MediaPlayerSeekBackward />
+                        <MediaPlayerSeekForward />
+                        <MediaPlayerVolume />
+                        <MediaPlayerSeek />
+                        <MediaPlayerTime />
+                        <MediaPlayerFullscreen />
+                      </MediaPlayerControls>
+                    </MediaPlayer>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-center p-8">
+                      <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+                        <span className="text-destructive font-bold text-xl uppercase tracking-widest">
+                          Offline
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-bold font-heading text-white mb-2">
+                        No Stream Available
+                      </h3>
+                      <p className="text-muted-foreground max-w-sm">
+                        We're sorry, but there are no active broadcasts available for {channel.name}{' '}
+                        at this time.
+                      </p>
+                    </div>
+                  )}
                 </div>
-                <div className="absolute top-8 left-8">
-                  <div className="font-heading font-bold text-2xl tracking-tighter text-white/80 mix-blend-overlay">
-                    SKY SPORTS
+
+                <div className="mt-8 flex justify-between items-start">
+                  <div>
+                    <h1 className="font-heading font-bold text-3xl md:text-4xl mb-3 tracking-tight">
+                      {channel.name}
+                    </h1>
+                    <div className="flex flex-wrap items-center gap-4">
+                      <span className="px-2.5 py-1 bg-destructive/10 text-destructive text-[10px] font-bold rounded-md uppercase tracking-widest border border-destructive/20">
+                        Live Broadcast
+                      </span>
+                      <p className="text-muted-foreground font-medium text-sm">
+                        Categories:{' '}
+                        {channel.categories.length > 0 ? channel.categories.join(', ') : 'General'}
+                      </p>
+                    </div>
+                    {channel.website && (
+                      <p className="mt-3 text-muted-foreground font-medium text-sm">
+                        Website:{' '}
+                        <a
+                          href={channel.website}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          {channel.website}
+                        </a>
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
 
-              <div className="mt-8 flex justify-between items-start">
-                <div>
-                  <h1 className="font-heading font-bold text-3xl md:text-4xl mb-3 tracking-tight">
-                    Sky Sports Premier League
-                  </h1>
-                  <div className="flex items-center gap-4">
-                    <span className="px-2.5 py-1 bg-destructive/10 text-destructive text-[10px] font-bold rounded-md uppercase tracking-widest border border-destructive/20">
-                      Live Broadcast
-                    </span>
-                    <p className="text-muted-foreground font-medium text-sm">
-                      Now playing: Goal Rush - Matchweek 24 Analysis
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+              {/* Sidebar: TV Guide / Info */}
+              <div className="w-full xl:w-[400px]">
+                <div className="bg-surface-container-low p-8 rounded-2xl border border-border/30 shadow-sm">
+                  <h3 className="font-heading font-bold text-xl mb-6">Channel Info</h3>
 
-            {/* Sidebar: TV Guide */}
-            <div className="w-full xl:w-[400px]">
-              <div className="bg-surface-container-low p-8 rounded-2xl border border-border/30 shadow-sm">
-                <h3 className="font-heading font-bold text-xl mb-8">Schedule</h3>
-
-                <div className="relative border-l border-border/50 pl-8 space-y-10 pb-4 ml-2">
-                  {/* Current Live Block */}
-                  <div className="relative group">
-                    <span className="absolute -left-[37px] w-3 h-3 rounded-full bg-primary ring-[6px] ring-primary/20 shadow-[0_0_12px_rgba(107,139,189,0.8)]"></span>
-
-                    <div className="text-xs font-bold uppercase tracking-widest text-primary mb-1.5 flex items-center gap-2">
-                      14:00 - 16:00
-                      <span className="text-[9px] bg-primary/20 px-1.5 py-0.5 rounded text-primary">
-                        LIVE
+                  <div className="space-y-4">
+                    <div className="flex flex-col gap-1 border-b border-border/50 pb-4">
+                      <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                        Country
+                      </span>
+                      <span className="font-medium text-foreground uppercase">
+                        {channel.country || 'Unknown'}
                       </span>
                     </div>
-                    <div className="font-heading font-semibold text-xl mb-2 text-foreground">
-                      Matchweek Analysis
-                    </div>
-                    <div className="text-muted-foreground text-sm leading-relaxed">
-                      In-depth review of yesterday's games, featuring highlights and tactical
-                      breakdowns.
-                    </div>
-                  </div>
 
-                  {/* Upcoming Block 1 */}
-                  <div className="relative opacity-70 hover:opacity-100 transition-opacity">
-                    <span className="absolute -left-[35px] w-2 h-2 rounded-full bg-border ring-[4px] ring-surface-container-low"></span>
-                    <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1.5">
-                      16:00 - 18:00
-                    </div>
-                    <div className="font-heading font-semibold text-xl">Build Up: PL Matchday</div>
-                  </div>
+                    {channel.network && (
+                      <div className="flex flex-col gap-1 border-b border-border/50 pb-4">
+                        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                          Network
+                        </span>
+                        <span className="font-medium text-foreground">{channel.network}</span>
+                      </div>
+                    )}
 
-                  {/* Upcoming Block 2 */}
-                  <div className="relative opacity-70 hover:opacity-100 transition-opacity">
-                    <span className="absolute -left-[35px] w-2 h-2 rounded-full bg-border ring-[4px] ring-surface-container-low"></span>
-                    <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1.5">
-                      18:00 - 20:30
-                    </div>
-                    <div className="font-heading font-semibold text-xl">
-                      Live: Arsenal vs Chelsea
+                    <div className="flex flex-col gap-1 pb-4">
+                      <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                        Streams
+                      </span>
+                      <span className="font-medium text-foreground">
+                        {channel.streams.length} Stream{channel.streams.length === 1 ? '' : 's'}{' '}
+                        Available
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </>
   )
 }

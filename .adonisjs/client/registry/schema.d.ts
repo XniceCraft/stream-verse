@@ -43,6 +43,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/football_controller').default['show']>>>
     }
   }
+  'tv.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/tv'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/tv').tvFiltersValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/tv_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/tv_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'tv.show': {
     methods: ["GET","HEAD"]
     pattern: '/tv/channel/:id'
@@ -51,8 +63,8 @@ export interface Registry {
       paramsTuple: [ParamValue]
       params: { id: ParamValue }
       query: {}
-      response: unknown
-      errorResponse: unknown
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/tv_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/tv_controller').default['show']>>>
     }
   }
   'profile.index': {

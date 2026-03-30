@@ -5,13 +5,17 @@ import { formatDateTime } from '@/lib/utils'
 
 import type { InertiaProps } from '@/types'
 import type { Data } from '@generated/data'
+import type { TvChannel } from '#types/contract/tv'
+import { TvCard } from '@/components/card/tv-card'
 
 export default function Home({
   liveFootball,
   upcomingFootball,
+  tvChannels = [],
 }: InertiaProps<{
   liveFootball: Data.Football[]
   upcomingFootball: Data.Football[]
+  tvChannels: TvChannel[]
 }>) {
   return (
     <>
@@ -80,7 +84,22 @@ export default function Home({
           </section>
           <section>
             <h2 className="mb-4 text-2xl font-bold">TV Channels</h2>
-            <p className="text-center text-muted-foreground">No TV channels available</p>
+            {tvChannels.length === 0 ? (
+              <p className="text-center text-muted-foreground">No TV channels available</p>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {tvChannels.map((channel) => (
+                  <TvCard
+                    key={channel.id}
+                    id={channel.id}
+                    name={channel.name}
+                    category={channel.categories?.[0] || 'General'}
+                    logo={channel.logo ?? undefined}
+                    isLive={true}
+                  />
+                ))}
+              </div>
+            )}
           </section>
         </div>
       </main>

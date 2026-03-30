@@ -81,6 +81,7 @@
     "@fontsource-variable/space-grotesk": "^5.2.10",
     "@gsap/react": "^2.1.2",
     "@inertiajs/react": "^2.3.17",
+    "@mux/mux-video-react": "^0.30.5",
     "@radix-ui/react-slot": "^1.2.4",
     "@tailwindcss/vite": "^4.2.2",
     "@tuyau/core": "^1.0.0",

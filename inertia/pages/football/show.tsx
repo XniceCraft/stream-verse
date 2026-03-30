@@ -52,7 +52,7 @@ export default function FootballShow({
             <div className="flex flex-col xl:flex-row gap-8">
               {/* Main Video Area */}
               <section className="flex-1">
-                <figure className="aspect-video w-full bg-[#0a0a0a] rounded-[2rem] overflow-hidden relative shadow-lg flex items-center justify-center border border-border/10">
+                <figure className="aspect-video w-full bg-[#0a0a0a] rounded-4xl overflow-hidden relative shadow-lg flex items-center justify-center border border-border/10">
                   {activeStream ? (
                     <iframe
                       src={activeStream.url}

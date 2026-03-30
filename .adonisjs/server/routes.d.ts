@@ -7,6 +7,7 @@ export type ScannedRoutes = {
     'home': { paramsTuple?: []; params?: {} }
     'football.index': { paramsTuple?: []; params?: {} }
     'football.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'tv.index': { paramsTuple?: []; params?: {} }
     'tv.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'profile.index': { paramsTuple?: []; params?: {} }
   }
@@ -14,6 +15,7 @@ export type ScannedRoutes = {
     'home': { paramsTuple?: []; params?: {} }
     'football.index': { paramsTuple?: []; params?: {} }
     'football.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'tv.index': { paramsTuple?: []; params?: {} }
     'tv.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'profile.index': { paramsTuple?: []; params?: {} }
   }
@@ -21,6 +23,7 @@ export type ScannedRoutes = {
     'home': { paramsTuple?: []; params?: {} }
     'football.index': { paramsTuple?: []; params?: {} }
     'football.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'tv.index': { paramsTuple?: []; params?: {} }
     'tv.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'profile.index': { paramsTuple?: []; params?: {} }
   }

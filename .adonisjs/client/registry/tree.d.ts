@@ -8,6 +8,7 @@ export interface ApiDefinition {
     show: typeof routes['football.show']
   }
   tv: {
+    index: typeof routes['tv.index']
     show: typeof routes['tv.show']
   }
   profile: {

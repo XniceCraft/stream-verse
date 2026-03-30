@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select'
 import { useDebounceEffect } from '@/hooks/use-debounce-effect'
 import { formatDateTime } from '@/lib/utils'
+import { urlFor } from '@/client'
 
 import type { InertiaProps } from '@/types'
 import type { Data } from '@generated/data'
@@ -47,7 +48,7 @@ export default function FootballIndex({
 
   return (
     <>
-      <Seo title="Football Matches" />
+      <Seo title="Football Matches" path={urlFor('football.index')} />
       <Navbar />
       <main className="min-h-screen bg-surface">
         <div className="mx-auto max-w-7xl px-4 py-24 space-y-8">

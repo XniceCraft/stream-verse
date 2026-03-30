@@ -24,6 +24,12 @@ const routes = {
     tokens: [{"old":"/football/match/:id","type":0,"val":"football","end":""},{"old":"/football/match/:id","type":0,"val":"match","end":""},{"old":"/football/match/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['football.show']['types'],
   },
+  'tv.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/tv',
+    tokens: [{"old":"/tv","type":0,"val":"tv","end":""}],
+    types: placeholder as Registry['tv.index']['types'],
+  },
   'tv.show': {
     methods: ["GET","HEAD"],
     pattern: '/tv/channel/:id',
