@@ -6,5 +6,5 @@ export const tvFiltersValidator = vine.create({
   category: vine.string().optional(),
   country: vine.string().optional(),
   sort: vine.enum(['name-asc', 'name-desc']).optional(),
-  pagination: pagination(),
+  ...pagination(),
 })

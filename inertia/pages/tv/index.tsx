@@ -38,21 +38,13 @@ export default function TvIndex({
 
   useDebounceEffect(
     () => {
-      setPage(1)
       router.reload({
-        data: { search, category: categoryFilter, sort, page: 1 },
+        data: { search, category: categoryFilter, sort, page },
       })
     },
     1000,
-    [search, categoryFilter, sort]
+    [search, categoryFilter, sort, page]
   )
-
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage)
-    router.reload({
-      data: { search, category: categoryFilter, sort, page: newPage },
-    })
-  }
 
   const renderPagination = () => {
     if (!pagination || pagination.pageCount <= 1) return null
@@ -74,7 +66,7 @@ export default function TvIndex({
             href="#"
             onClick={(e) => {
               e.preventDefault()
-              handlePageChange(1)
+              setPage(1)
             }}
           >
             1
@@ -98,7 +90,7 @@ export default function TvIndex({
             isActive={page === i}
             onClick={(e) => {
               e.preventDefault()
-              handlePageChange(i)
+              setPage(i)
             }}
           >
             {i}
@@ -121,7 +113,7 @@ export default function TvIndex({
             href="#"
             onClick={(e) => {
               e.preventDefault()
-              handlePageChange(pagination.pageCount)
+              setPage(pagination.pageCount)
             }}
           >
             {pagination.pageCount}
@@ -138,7 +130,7 @@ export default function TvIndex({
               href="#"
               onClick={(e) => {
                 e.preventDefault()
-                if (page > 1) handlePageChange(page - 1)
+                if (page > 1) setPage(page - 1)
               }}
               className={page <= 1 ? 'pointer-events-none opacity-50' : ''}
             />
@@ -149,7 +141,7 @@ export default function TvIndex({
               href="#"
               onClick={(e) => {
                 e.preventDefault()
-                if (page < pagination.pageCount) handlePageChange(page + 1)
+                if (page < pagination.pageCount) setPage(page + 1)
               }}
               className={page >= pagination.pageCount ? 'pointer-events-none opacity-50' : ''}
             />

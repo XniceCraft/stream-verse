@@ -41,25 +41,11 @@ export default function FootballIndex({
 
   useDebounceEffect(
     () => {
-      setPage(1)
-      router.get(
-        '/football',
-        { search, status: statusFilter, sort, page: 1 },
-        { preserveState: true, replace: true }
-      )
+      router.reload({ data: { search, status: statusFilter, sort, page } })
     },
     1000,
-    [search, statusFilter, sort]
+    [search, statusFilter, sort, page]
   )
-
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage)
-    router.get(
-      '/football',
-      { search, status: statusFilter, sort, page: newPage },
-      { preserveState: true, preserveScroll: true }
-    )
-  }
 
   const renderPagination = () => {
     if (!pagination || pagination.pageCount <= 1) return null
@@ -81,7 +67,7 @@ export default function FootballIndex({
             href="#"
             onClick={(e) => {
               e.preventDefault()
-              handlePageChange(1)
+              setPage(1)
             }}
           >
             1
@@ -105,7 +91,7 @@ export default function FootballIndex({
             isActive={page === i}
             onClick={(e) => {
               e.preventDefault()
-              handlePageChange(i)
+              setPage(i)
             }}
           >
             {i}
@@ -128,7 +114,7 @@ export default function FootballIndex({
             href="#"
             onClick={(e) => {
               e.preventDefault()
-              handlePageChange(pagination.pageCount)
+              setPage(pagination.pageCount)
             }}
           >
             {pagination.pageCount}
@@ -145,7 +131,7 @@ export default function FootballIndex({
               href="#"
               onClick={(e) => {
                 e.preventDefault()
-                if (page > 1) handlePageChange(page - 1)
+                if (page > 1) setPage(page - 1)
               }}
               className={page <= 1 ? 'pointer-events-none opacity-50' : ''}
             />
@@ -156,7 +142,7 @@ export default function FootballIndex({
               href="#"
               onClick={(e) => {
                 e.preventDefault()
-                if (page < pagination.pageCount) handlePageChange(page + 1)
+                if (page < pagination.pageCount) setPage(page + 1)
               }}
               className={page >= pagination.pageCount ? 'pointer-events-none opacity-50' : ''}
             />

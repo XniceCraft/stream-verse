@@ -12,8 +12,8 @@ export default class FootballController {
     const { data: matches, pagination } = await footballService.getMatches({
       ...qs,
       pagination: {
-        page: qs.pagination?.page ?? 1,
-        pageSize: qs.pagination?.pageSize ?? 25,
+        page: qs.page ?? 1,
+        pageSize: qs.pageSize ?? 25,
       },
     })
 

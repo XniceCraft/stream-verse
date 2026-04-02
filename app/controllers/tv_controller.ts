@@ -12,8 +12,8 @@ export default class TvController {
     const { data: channels, pagination } = await tvService.getChannels({
       ...qs,
       pagination: {
-        page: qs.pagination?.page ?? 1,
-        pageSize: qs.pagination?.pageSize ?? 25,
+        page: qs.page ?? 1,
+        pageSize: qs.pageSize ?? 25,
       },
     })
     const categories = await tvService.getCategories()
