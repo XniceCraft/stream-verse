@@ -6,6 +6,8 @@ import type {
   TvChannelDetail as TvChannelDetailContract,
   TvStream,
 } from '#types/contract/tv'
+import type { Pagination } from '#types/contract/pagination'
+import type { ServiceResponse } from '#types/contract/service'
 
 interface ApiChannel {
   id: string
@@ -45,11 +47,10 @@ interface ApiLogo {
 
 interface Options {
   search?: string
-  max?: number
-  page?: number
   category?: string
   country?: string
   sort?: 'name-asc' | 'name-desc'
+  pagination?: Pick<Pagination, 'page' | 'pageSize'>
 }
 
 export class TvService {
@@ -62,7 +63,7 @@ export class TvService {
       factory: async () => {
         try {
           const channels = await this.getChannels()
-          const found = channels.find((ch) => ch.id === id)
+          const found = channels.data.find((ch) => ch.id === id)
           if (!found) return null
 
           const streams = await this.fetchStreams()
@@ -89,7 +90,7 @@ export class TvService {
     return channel ?? null
   }
 
-  public async getChannels(options?: Options): Promise<TvChannelContract[]> {
+  public async getChannels(options?: Options): Promise<ServiceResponse<TvChannelContract[]>> {
     let channels: TvChannelContract[] = await cache.getOrSet({
       key: 'data:tv',
       ttl: '30m',
@@ -120,6 +121,7 @@ export class TvService {
           }))
       },
     })
+    const total = channels.length
 
     if (options?.search) {
       channels = channels.filter((ch) =>
@@ -143,13 +145,22 @@ export class TvService {
       channels = channels.sort((a, b) => a.name.localeCompare(b.name))
     }
 
-    if (options?.page && options?.max) {
-      channels = channels.slice((options.page - 1) * options.max, options.page * options.max)
-    } else if (options?.max) {
-      channels = channels.slice(0, options.max)
+    if (options?.pagination) {
+      const { page, pageSize } = options.pagination
+      channels = channels.slice((page - 1) * pageSize, page * pageSize)
     }
 
-    return channels
+    return {
+      data: channels,
+      pagination: options?.pagination
+        ? {
+            page: options.pagination.page,
+            pageSize: options.pagination.pageSize,
+            pageCount: Math.ceil(total / options.pagination.pageSize),
+            total,
+          }
+        : undefined,
+    }
   }
 
   public async getCategories(): Promise<string[]> {
@@ -159,7 +170,7 @@ export class TvService {
       factory: async () => {
         const channels = await this.getChannels()
         const cats = new Set<string>()
-        channels.forEach((ch) => ch.categories.forEach((c) => cats.add(c)))
+        channels.data.forEach((ch) => ch.categories.forEach((c) => cats.add(c)))
         return Array.from(cats).sort()
       },
     })

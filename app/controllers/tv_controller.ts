@@ -6,33 +6,22 @@ import type { HttpContext } from '@adonisjs/core/http'
 
 export default class TvController {
   async index({ inertia, request }: HttpContext) {
-    const { search, category, country, sort, page } = await request.validateUsing(
-      tvFiltersValidator,
-      request.qs()
-    )
+    const qs = await request.validateUsing(tvFiltersValidator, request.qs())
     const tvService = await app.container.make('tv')
 
-    const channels = await tvService.getChannels({
-      search,
-      category,
-      country,
-      sort,
-      page,
-      max: 24,
+    const { data: channels, pagination } = await tvService.getChannels({
+      ...qs,
+      pagination: {
+        page: qs.pagination?.page ?? 1,
+        pageSize: qs.pagination?.pageSize ?? 25,
+      },
     })
-
     const categories = await tvService.getCategories()
 
     return inertia.render('tv/index', {
       channels,
       categories,
-      filters: {
-        search,
-        category,
-        country,
-        sort,
-        page,
-      },
+      pagination,
     })
   }
 

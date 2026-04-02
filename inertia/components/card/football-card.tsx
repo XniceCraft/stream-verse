@@ -2,6 +2,7 @@ import { Link } from '@adonisjs/inertia/react'
 import { cn } from '@/lib/utils'
 
 import type { Status } from '../../../types/contract/football'
+import { useMemo } from 'react'
 
 interface FootballCardProps {
   id: string
@@ -11,7 +12,7 @@ interface FootballCardProps {
   awayTeamName: string
   homeTeamLogo: string
   awayTeamLogo: string
-  matchTime: string
+  matchTime: number
   score: string
 }
 
@@ -32,6 +33,8 @@ export function FootballCard({
   matchTime,
   score,
 }: FootballCardProps) {
+  const date = useMemo(() => new Date(matchTime), [matchTime])
+
   return (
     <Link
       route="football.show"
@@ -63,19 +66,33 @@ export function FootballCard({
 
           <div className="relative flex w-full flex-col items-center gap-1 py-1">
             <div className="absolute top-1/2 left-0 h-px w-full -translate-y-1/2 bg-border/40" />
-            <div className="relative bg-surface-container-high/60 px-4 backdrop-blur-md">
-              <span className="font-heading text-4xl font-extrabold tracking-tighter text-foreground drop-shadow-sm">
-                {score}
-              </span>
-            </div>
-            <time
-              className={cn(
-                'text-sm font-semibold tracking-wide',
-                status === 'inprogress' ? 'text-red-500' : 'text-muted-foreground'
-              )}
-            >
-              {matchTime}
-            </time>
+            {status === 'inprogress' && (
+              <div className="relative bg-surface-container-high/60 px-4 backdrop-blur-md">
+                <span className="font-heading text-4xl font-extrabold tracking-tighter text-foreground drop-shadow-sm">
+                  {score}
+                </span>
+              </div>
+            )}
+            {status !== 'inprogress' && (
+              <>
+                <time className="text-sm font-semibold tracking-wider text-muted-foreground">
+                  {new Intl.DateTimeFormat('en-GB', {
+                    weekday: 'long',
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric',
+                  }).format(date)}
+                </time>
+                <time className="text-xs font-medium text-muted-foreground/80">
+                  {new Intl.DateTimeFormat('en-GB', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    timeZone: 'UTC',
+                    timeZoneName: 'short',
+                  }).format(date)}
+                </time>
+              </>
+            )}
           </div>
 
           <TeamBadge name={awayTeamName} logo={awayTeamLogo} />

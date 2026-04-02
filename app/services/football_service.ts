@@ -7,6 +7,8 @@ import type {
   MatchDetail as MatchDetailContract,
   Status,
 } from '#types/contract/football'
+import type { Pagination } from '#types/contract/pagination'
+import type { ServiceResponse } from '#types/contract/service'
 
 interface Leauge {
   name: string
@@ -140,10 +142,9 @@ interface MatchDetailResponse {
 
 interface Options {
   search?: string
-  max?: number
-  page?: number
   status?: Status
   sort?: 'asc' | 'desc'
+  pagination?: Pick<Pagination, 'page' | 'pageSize'>
 }
 
 export class FootballService {
@@ -218,7 +219,7 @@ export class FootballService {
     return match ?? null
   }
 
-  public async getMatches(options?: Options): Promise<MatchContract[]> {
+  public async getMatches(options?: Options): Promise<ServiceResponse<MatchContract[]>> {
     let matches: MatchContract[] = await cache.getOrSet({
       key: 'data:football',
       ttl: '5m',
@@ -256,6 +257,7 @@ export class FootballService {
         )
       },
     })
+    const total = matches.length
 
     if (options?.search) {
       matches = matches.filter((match) =>
@@ -271,13 +273,21 @@ export class FootballService {
       matches = matches.sort((a, b) => (options.sort === 'asc' ? a.time - b.time : b.time - a.time))
     }
 
-    if (options?.page && options?.max) {
-      matches = matches.slice((options.page - 1) * options.max, options.page * options.max)
-    } else if (options?.max) {
-      matches = matches.slice(0, options.max)
+    if (options?.pagination) {
+      const { page, pageSize } = options.pagination
+      matches = matches.slice((page - 1) * pageSize, page * pageSize)
     }
-
-    return matches
+    return {
+      data: matches,
+      pagination: options?.pagination
+        ? {
+            page: options.pagination.page,
+            pageSize: options.pagination.pageSize,
+            pageCount: Math.ceil(total / options.pagination.pageSize),
+            total,
+          }
+        : undefined,
+    }
   }
 
   protected async fetchMatches(): Promise<MatchData[]> {

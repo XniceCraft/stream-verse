@@ -1,7 +1,6 @@
 import { FootballCard } from '@/components/card/football-card'
 import { Navbar } from '@/components/layout/navbar'
 import { Seo } from '@/components/other/seo'
-import { formatDateTime } from '@/lib/utils'
 
 import type { InertiaProps } from '@/types'
 import type { Data } from '@generated/data'
@@ -51,7 +50,7 @@ export default function Home({
                     awayTeamName={match.teams.away.name}
                     homeTeamLogo={match.teams.home.badge}
                     awayTeamLogo={match.teams.away.badge}
-                    matchTime={formatDateTime(match.time)}
+                    matchTime={match.time}
                     score={match.score.home + ' - ' + match.score.away}
                   />
                 ))}
@@ -75,7 +74,7 @@ export default function Home({
                     awayTeamName={match.teams.away.name}
                     homeTeamLogo={match.teams.home.badge}
                     awayTeamLogo={match.teams.away.badge}
-                    matchTime={formatDateTime(match.time)}
+                    matchTime={match.time}
                     score={match.score.home + ' - ' + match.score.away}
                   />
                 ))}

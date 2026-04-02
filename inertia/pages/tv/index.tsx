@@ -1,52 +1,163 @@
-import { useState, useCallback } from 'react'
+import { useDebounceEffect } from '@/hooks/use-debounce-effect'
+import { parseAsString, parseAsInteger, useQueryState } from 'nuqs'
 import { Search, Filter, ArrowUpDown, Tv, PlayCircle } from 'lucide-react'
 import { router } from '@inertiajs/react'
+import {
+  Pagination as PaginationComponent,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination'
 import { Navbar } from '@/components/layout/navbar'
 import { Seo } from '@/components/other/seo'
 import { TvCard } from '@/components/card/tv-card'
 import { urlFor } from '@/client'
 
-import type { TvChannel } from '#types/contract/tv'
-import type { InertiaProps } from '@/types'
+import type { Data } from '@generated/data'
+import type { InertiaProps, Pagination } from '@/types'
 
 export default function TvIndex({
   channels = [],
   categories = [],
-  filters = {},
+  pagination,
 }: InertiaProps<{
-  channels: TvChannel[]
+  channels: Data.Tv[]
   categories: string[]
-  filters: { search?: string; category?: string; sort?: string; page?: number }
+  pagination?: Pagination
 }>) {
-  const [search, setSearch] = useState(filters.search || '')
-  const [categoryFilter, setCategoryFilter] = useState(filters.category || 'all')
-  const [sort, setSort] = useState(filters.sort || 'name-asc')
+  const [search, setSearch] = useQueryState('search', parseAsString.withDefault(''))
+  const [categoryFilter, setCategoryFilter] = useQueryState(
+    'category',
+    parseAsString.withDefault('')
+  )
+  const [sort, setSort] = useQueryState('sort', parseAsString.withDefault(''))
+  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1))
 
-  const updateFilters = useCallback(
-    (key: string, value: string) => {
-      const newFilters = {
-        search,
-        category: categoryFilter !== 'all' ? categoryFilter : undefined,
-        sort,
-        [key]: value,
-      }
-
-      if (key === 'search') setSearch(value)
-      if (key === 'category') setCategoryFilter(value)
-      if (key === 'sort') setSort(value)
-
-      router.get(
-        '/tv',
-        {
-          search: newFilters.search || undefined,
-          category: newFilters.category !== 'all' ? newFilters.category : undefined,
-          sort: newFilters.sort,
-        },
-        { preserveState: true, replace: true }
-      )
+  useDebounceEffect(
+    () => {
+      setPage(1)
+      router.reload({
+        data: { search, category: categoryFilter, sort, page: 1 },
+      })
     },
+    1000,
     [search, categoryFilter, sort]
   )
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage)
+    router.reload({
+      data: { search, category: categoryFilter, sort, page: newPage },
+    })
+  }
+
+  const renderPagination = () => {
+    if (!pagination || pagination.pageCount <= 1) return null
+
+    const maxVisiblePages = 5
+    let startPage = Math.max(1, page - 2)
+    let endPage = Math.min(pagination.pageCount, startPage + maxVisiblePages - 1)
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1)
+    }
+
+    const pages = []
+
+    if (startPage > 1) {
+      pages.push(
+        <PaginationItem key="1">
+          <PaginationLink
+            href="#"
+            onClick={(e) => {
+              e.preventDefault()
+              handlePageChange(1)
+            }}
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>
+      )
+      if (startPage > 2) {
+        pages.push(
+          <PaginationItem key="start-ellipsis">
+            <PaginationEllipsis />
+          </PaginationItem>
+        )
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <PaginationItem key={i}>
+          <PaginationLink
+            href="#"
+            isActive={page === i}
+            onClick={(e) => {
+              e.preventDefault()
+              handlePageChange(i)
+            }}
+          >
+            {i}
+          </PaginationLink>
+        </PaginationItem>
+      )
+    }
+
+    if (endPage < pagination.pageCount) {
+      if (endPage < pagination.pageCount - 1) {
+        pages.push(
+          <PaginationItem key="end-ellipsis">
+            <PaginationEllipsis />
+          </PaginationItem>
+        )
+      }
+      pages.push(
+        <PaginationItem key={pagination.pageCount}>
+          <PaginationLink
+            href="#"
+            onClick={(e) => {
+              e.preventDefault()
+              handlePageChange(pagination.pageCount)
+            }}
+          >
+            {pagination.pageCount}
+          </PaginationLink>
+        </PaginationItem>
+      )
+    }
+
+    return (
+      <PaginationComponent className="mt-8">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              href="#"
+              onClick={(e) => {
+                e.preventDefault()
+                if (page > 1) handlePageChange(page - 1)
+              }}
+              className={page <= 1 ? 'pointer-events-none opacity-50' : ''}
+            />
+          </PaginationItem>
+          {pages}
+          <PaginationItem>
+            <PaginationNext
+              href="#"
+              onClick={(e) => {
+                e.preventDefault()
+                if (page < pagination.pageCount) handlePageChange(page + 1)
+              }}
+              className={page >= pagination.pageCount ? 'pointer-events-none opacity-50' : ''}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </PaginationComponent>
+    )
+  }
 
   return (
     <>
@@ -54,7 +165,6 @@ export default function TvIndex({
       <Navbar />
       <main className="min-h-screen bg-surface">
         <div className="mx-auto max-w-7xl px-4 py-8 space-y-8 pt-24 lg:pt-28">
-          {/* Header */}
           <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-1 text-sm font-medium text-primary mb-2">
@@ -71,7 +181,6 @@ export default function TvIndex({
             </div>
           </header>
 
-          {/* Filters & Search */}
           <div className="flex flex-col gap-4 md:flex-row md:items-center bg-surface-container-low p-4 rounded-2xl border border-border/40 shadow-sm backdrop-blur-xl transition-all focus-within:border-primary/30">
             <div className="relative flex-1 group">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-muted-foreground group-focus-within:text-primary transition-colors">
@@ -82,7 +191,7 @@ export default function TvIndex({
                 placeholder="Search TV channels..."
                 className="block w-full rounded-xl border border-border/50 bg-background/50 py-3 pl-11 pr-4 text-sm outline-none transition-all placeholder:text-muted-foreground focus:bg-background focus:border-primary focus:ring-1 focus:ring-primary shadow-sm"
                 value={search}
-                onChange={(e) => updateFilters('search', e.target.value)}
+                onChange={(e) => setSearch(e.target.value)}
               />
             </div>
 
@@ -94,9 +203,9 @@ export default function TvIndex({
                 <select
                   className="w-full sm:w-auto min-w-[160px] appearance-none rounded-xl border border-border/50 bg-background/50 py-3 pl-10 pr-10 text-sm outline-none transition-all focus:bg-background focus:border-primary focus:ring-1 focus:ring-primary shadow-sm"
                   value={categoryFilter}
-                  onChange={(e) => updateFilters('category', e.target.value)}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
                 >
-                  <option value="all">All Categories</option>
+                  <option value="">All Categories</option>
                   {categories.map((cat) => (
                     <option key={cat} value={cat}>
                       {cat}
@@ -127,7 +236,7 @@ export default function TvIndex({
                 <select
                   className="w-full sm:w-auto min-w-[170px] appearance-none rounded-xl border border-border/50 bg-background/50 py-3 pl-10 pr-10 text-sm outline-none transition-all focus:bg-background focus:border-primary focus:ring-1 focus:ring-primary shadow-sm"
                   value={sort}
-                  onChange={(e) => updateFilters('sort', e.target.value)}
+                  onChange={(e) => setSort(e.target.value)}
                 >
                   <option value="name-asc">Name (A-Z)</option>
                   <option value="name-desc">Name (Z-A)</option>
@@ -151,7 +260,6 @@ export default function TvIndex({
             </div>
           </div>
 
-          {/* Results Grid */}
           <section>
             {channels.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border/60 bg-surface-container-low/30 py-24 text-center backdrop-blur-sm">
@@ -166,9 +274,9 @@ export default function TvIndex({
                 </p>
                 <button
                   onClick={() => {
-                    updateFilters('search', '')
-                    updateFilters('category', 'all')
-                    updateFilters('sort', 'name-asc')
+                    setSearch('')
+                    setCategoryFilter('all')
+                    setSort('name-asc')
                   }}
                   className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary/10 px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 >
@@ -176,18 +284,21 @@ export default function TvIndex({
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {channels.map((channel) => (
-                  <TvCard
-                    key={channel.id}
-                    id={channel.id}
-                    name={channel.name}
-                    category={channel.categories?.[0] || 'General'}
-                    logo={channel.logo ?? undefined}
-                    isLive={true}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {channels.map((channel) => (
+                    <TvCard
+                      key={channel.id}
+                      id={channel.id}
+                      name={channel.name}
+                      category={channel.categories?.[0] || 'General'}
+                      logo={channel.logo ?? undefined}
+                      isLive={true}
+                    />
+                  ))}
+                </div>
+                {renderPagination()}
+              </>
             )}
           </section>
         </div>

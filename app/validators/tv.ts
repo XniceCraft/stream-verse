@@ -1,3 +1,4 @@
+import { pagination } from './fields/pagination.js'
 import vine from '@vinejs/vine'
 
 export const tvFiltersValidator = vine.create({
@@ -5,5 +6,5 @@ export const tvFiltersValidator = vine.create({
   category: vine.string().optional(),
   country: vine.string().optional(),
   sort: vine.enum(['name-asc', 'name-desc']).optional(),
-  page: vine.number().positive().optional(),
+  pagination: pagination(),
 })

@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { Link } from '@adonisjs/inertia/react'
 import { Seo } from '@/components/other/seo'
+import { Play } from 'lucide-react'
 import { urlFor } from '@/client'
 import {
   MediaPlayer,
@@ -13,16 +15,19 @@ import {
   MediaPlayerSeekBackward,
   MediaPlayerSeekForward,
   MediaPlayerVolume,
-  MediaPlayerSeek,
   MediaPlayerTime,
   MediaPlayerFullscreen,
 } from '@/components/ui/media-player'
 import MuxVideo from '@mux/mux-video-react'
 
-import type { TvChannelDetail } from '#types/contract/tv'
 import type { InertiaProps } from '@/types'
+import type { Data } from '@generated/data'
 
-export default function TVShow({ channel }: InertiaProps<{ channel: TvChannelDetail }>) {
+export default function TVShow({ channel }: InertiaProps<{ channel: Data.Tv.Variants['detail'] }>) {
+  const [activeStream, setActiveStream] = useState<
+    Data.Tv.Variants['detail']['streams'][number] | null
+  >(channel.streams?.[0] || null)
+
   return (
     <>
       <Seo title={channel.name} path={urlFor('tv.show', { id: channel.id })} />
@@ -69,30 +74,16 @@ export default function TVShow({ channel }: InertiaProps<{ channel: TvChannelDet
 
           <div className="p-8">
             <div className="flex flex-col xl:flex-row gap-8">
-              {/* Main Video Area */}
               <div className="flex-1">
                 <div className="aspect-video w-full bg-[#0a0a0a] rounded-4xl overflow-hidden relative shadow-lg flex items-center justify-center border border-border/10">
-                  {channel.streams.length > 0 ? (
+                  {activeStream ? (
                     <MediaPlayer autoHide className="w-full h-full">
                       <MediaPlayerVideo asChild>
-                        <MuxVideo src={channel.streams[0].url} autoPlay crossOrigin="" />
+                        <MuxVideo src={activeStream.url} autoPlay crossOrigin="" />
                       </MediaPlayerVideo>
                       <MediaPlayerLoading />
                       <MediaPlayerError />
                       <MediaPlayerVolumeIndicator />
-
-                      <div className="absolute top-8 left-8 flex items-center gap-4 pointer-events-none z-10 transition-opacity duration-300">
-                        {channel.logo && (
-                          <img
-                            src={channel.logo}
-                            alt={channel.name}
-                            className="h-12 w-auto object-contain mix-blend-overlay opacity-80 drop-shadow-md"
-                          />
-                        )}
-                        <div className="font-heading font-bold text-2xl tracking-tighter text-white/80 mix-blend-overlay drop-shadow-md">
-                          {channel.name}
-                        </div>
-                      </div>
 
                       <MediaPlayerControls>
                         <MediaPlayerControlsOverlay />
@@ -100,7 +91,6 @@ export default function TVShow({ channel }: InertiaProps<{ channel: TvChannelDet
                         <MediaPlayerSeekBackward />
                         <MediaPlayerSeekForward />
                         <MediaPlayerVolume />
-                        <MediaPlayerSeek />
                         <MediaPlayerTime />
                         <MediaPlayerFullscreen />
                       </MediaPlayerControls>
@@ -124,6 +114,27 @@ export default function TVShow({ channel }: InertiaProps<{ channel: TvChannelDet
                 </div>
 
                 <div className="mt-8 flex justify-between items-start">
+                  {channel.streams && channel.streams.length > 0 && (
+                    <nav className="mt-6 flex flex-wrap gap-3 items-center">
+                      <span className="font-medium text-sm text-muted-foreground mr-2">
+                        Servers:
+                      </span>
+                      {channel.streams.map((stream) => (
+                        <button
+                          key={stream.url}
+                          onClick={() => setActiveStream(stream)}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                            activeStream?.url === stream.url
+                              ? 'bg-primary text-primary-foreground shadow-md'
+                              : 'bg-surface-container hover:bg-surface-container-high text-foreground border border-border/50'
+                          }`}
+                        >
+                          <Play className="w-4 h-4" />
+                          {stream.title}
+                        </button>
+                      ))}
+                    </nav>
+                  )}
                   <div>
                     <h1 className="font-heading font-bold text-3xl md:text-4xl mb-3 tracking-tight">
                       {channel.name}

@@ -1,6 +1,16 @@
-import { useState } from 'react'
+import { useDebounceEffect } from '@/hooks/use-debounce-effect'
+import { parseAsString, parseAsInteger, useQueryState } from 'nuqs'
 import { router } from '@inertiajs/react'
 import { Search, Filter, ArrowUpDown, Trophy, PlayCircle } from 'lucide-react'
+import {
+  Pagination as PaginationComponent,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination'
 import { FootballCard } from '@/components/card/football-card'
 import { Navbar } from '@/components/layout/navbar'
 import { Seo } from '@/components/other/seo'
@@ -12,39 +22,149 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useDebounceEffect } from '@/hooks/use-debounce-effect'
-import { formatDateTime } from '@/lib/utils'
 import { urlFor } from '@/client'
 
-import type { InertiaProps } from '@/types'
 import type { Data } from '@generated/data'
+import type { InertiaProps, Pagination } from '@/types'
 
 export default function FootballIndex({
   matches = [],
-  filters,
+  pagination,
 }: InertiaProps<{
   matches?: Data.Football[]
-  filters: {
-    search: string | undefined
-    status: string | undefined
-    sort: string | undefined
-  }
+  pagination?: Pagination
 }>) {
-  const [search, setSearch] = useState(filters.search)
-  const [statusFilter, setStatusFilter] = useState(filters.status)
-  const [sort, setSort] = useState(filters.sort)
+  const [search, setSearch] = useQueryState('search', parseAsString.withDefault(''))
+  const [statusFilter, setStatusFilter] = useQueryState('status', parseAsString.withDefault(''))
+  const [sort, setSort] = useQueryState('sort', parseAsString.withDefault(''))
+  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1))
 
   useDebounceEffect(
     () => {
+      setPage(1)
       router.get(
         '/football',
-        { search, status: statusFilter, sort },
+        { search, status: statusFilter, sort, page: 1 },
         { preserveState: true, replace: true }
       )
     },
     1000,
     [search, statusFilter, sort]
   )
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage)
+    router.get(
+      '/football',
+      { search, status: statusFilter, sort, page: newPage },
+      { preserveState: true, preserveScroll: true }
+    )
+  }
+
+  const renderPagination = () => {
+    if (!pagination || pagination.pageCount <= 1) return null
+
+    const maxVisiblePages = 5
+    let startPage = Math.max(1, page - 2)
+    let endPage = Math.min(pagination.pageCount, startPage + maxVisiblePages - 1)
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1)
+    }
+
+    const pages = []
+
+    if (startPage > 1) {
+      pages.push(
+        <PaginationItem key="1">
+          <PaginationLink
+            href="#"
+            onClick={(e) => {
+              e.preventDefault()
+              handlePageChange(1)
+            }}
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>
+      )
+      if (startPage > 2) {
+        pages.push(
+          <PaginationItem key="start-ellipsis">
+            <PaginationEllipsis />
+          </PaginationItem>
+        )
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <PaginationItem key={i}>
+          <PaginationLink
+            href="#"
+            isActive={page === i}
+            onClick={(e) => {
+              e.preventDefault()
+              handlePageChange(i)
+            }}
+          >
+            {i}
+          </PaginationLink>
+        </PaginationItem>
+      )
+    }
+
+    if (endPage < pagination.pageCount) {
+      if (endPage < pagination.pageCount - 1) {
+        pages.push(
+          <PaginationItem key="end-ellipsis">
+            <PaginationEllipsis />
+          </PaginationItem>
+        )
+      }
+      pages.push(
+        <PaginationItem key={pagination.pageCount}>
+          <PaginationLink
+            href="#"
+            onClick={(e) => {
+              e.preventDefault()
+              handlePageChange(pagination.pageCount)
+            }}
+          >
+            {pagination.pageCount}
+          </PaginationLink>
+        </PaginationItem>
+      )
+    }
+
+    return (
+      <PaginationComponent className="mt-8">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              href="#"
+              onClick={(e) => {
+                e.preventDefault()
+                if (page > 1) handlePageChange(page - 1)
+              }}
+              className={page <= 1 ? 'pointer-events-none opacity-50' : ''}
+            />
+          </PaginationItem>
+          {pages}
+          <PaginationItem>
+            <PaginationNext
+              href="#"
+              onClick={(e) => {
+                e.preventDefault()
+                if (page < pagination.pageCount) handlePageChange(page + 1)
+              }}
+              className={page >= pagination.pageCount ? 'pointer-events-none opacity-50' : ''}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </PaginationComponent>
+    )
+  }
 
   return (
     <>
@@ -135,22 +255,25 @@ export default function FootballIndex({
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {matches.map((match) => (
-                  <FootballCard
-                    key={match.id}
-                    id={match.id}
-                    league={match.league.name}
-                    status={match.status}
-                    homeTeamName={match.teams.home.name}
-                    awayTeamName={match.teams.away.name}
-                    homeTeamLogo={match.teams.home.badge}
-                    awayTeamLogo={match.teams.away.badge}
-                    matchTime={formatDateTime(match.time)}
-                    score={match.score.home + ' - ' + match.score.away}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {matches.map((match) => (
+                    <FootballCard
+                      key={match.id}
+                      id={match.id}
+                      league={match.league.name}
+                      status={match.status}
+                      homeTeamName={match.teams.home.name}
+                      awayTeamName={match.teams.away.name}
+                      homeTeamLogo={match.teams.home.badge}
+                      awayTeamLogo={match.teams.away.badge}
+                      matchTime={match.time}
+                      score={match.score.home + ' - ' + match.score.away}
+                    />
+                  ))}
+                </div>
+                {renderPagination()}
+              </>
             )}
           </section>
         </div>

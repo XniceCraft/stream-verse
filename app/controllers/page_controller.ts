@@ -7,18 +7,18 @@ export default class PageController {
     const footballService = await app.container.make('football')
     const tvService = await app.container.make('tv')
 
-    const liveFootball = await footballService.getMatches({
-      max: 10,
+    const { data: liveFootball } = await footballService.getMatches({
       status: 'inprogress',
       sort: 'desc',
+      pagination: { page: 1, pageSize: 10 },
     })
-    const upcomingFootball = await footballService.getMatches({
-      max: 10,
+    const { data: upcomingFootball } = await footballService.getMatches({
       status: 'notstarted',
       sort: 'desc',
+      pagination: { page: 1, pageSize: 10 },
     })
-    const tvChannels = await tvService.getChannels({
-      max: 8,
+    const { data: tvChannels } = await tvService.getChannels({
+      pagination: { page: 1, pageSize: 8 },
     })
 
     return inertia.render('home', {

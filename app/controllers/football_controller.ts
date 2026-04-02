@@ -6,25 +6,20 @@ import type { HttpContext } from '@adonisjs/core/http'
 
 export default class FootballController {
   async index({ inertia, request }: HttpContext) {
-    const { search, status, sort } = await request.validateUsing(
-      footballFiltersValidator,
-      request.qs()
-    )
+    const qs = await request.validateUsing(footballFiltersValidator, request.qs())
     const footballService = await app.container.make('football')
 
-    const matches = await footballService.getMatches({
-      search,
-      status: status === 'all' ? undefined : status,
-      sort,
+    const { data: matches, pagination } = await footballService.getMatches({
+      ...qs,
+      pagination: {
+        page: qs.pagination?.page ?? 1,
+        pageSize: qs.pagination?.pageSize ?? 25,
+      },
     })
 
     return inertia.render('football/index', {
       matches,
-      filters: {
-        search,
-        status,
-        sort,
-      },
+      pagination,
     })
   }
 

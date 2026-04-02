@@ -1,4 +1,5 @@
 import { SettingSchema } from '#database/schema'
+import env from '#start/env'
 
 import type { SEO } from '#types/settings/seo'
 
@@ -14,7 +15,7 @@ export default class Setting extends SettingSchema {
         return acc
       },
       {
-        name: '',
+        name: env.get('APP_NAME'),
         description: null,
         keywords: null,
         author: null,

@@ -7,6 +7,7 @@ import { createInertiaApp } from '@inertiajs/react'
 import { StrictMode } from 'react'
 import { TuyauProvider } from '@adonisjs/inertia/react'
 import { resolvePageComponent } from '@adonisjs/inertia/helpers'
+import { NuqsAdapter } from 'nuqs/adapters/react'
 import MainLayout from '@/components/layout/main-layout'
 
 import type { ReactElement } from 'react'
@@ -23,9 +24,11 @@ createInertiaApp({
   setup({ el, App, props }) {
     createRoot(el).render(
       <StrictMode>
-        <TuyauProvider client={client}>
-          <App {...props} />
-        </TuyauProvider>
+        <NuqsAdapter>
+          <TuyauProvider client={client}>
+            <App {...props} />
+          </TuyauProvider>
+        </NuqsAdapter>
       </StrictMode>
     )
   },
